@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.miqt.multiprogresskv">
+
+    <application>
+        <provider
+            android:name=".DataContentProvider"
+            android:authorities="${applicationId}.DataContentProvider"
+            android:enabled="true"
+            android:exported="false" />
+    </application>
+</manifest>
