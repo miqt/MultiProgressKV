@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class DataControlTest {
     @Test
@@ -93,12 +94,26 @@ public class DataControlTest {
             static final int anInt = 1;
             Float aFloat = 10.0F;
             Double aDouble = 10.0d;
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                TestEntity that = (TestEntity) o;
+                return Objects.equals(aFloat, that.aFloat) &&
+                        Objects.equals(aDouble, that.aDouble);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(aFloat, aDouble);
+            }
         }
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         TestEntity testEntity = new TestEntity();
-        DataControl control = new DataControl(appContext);
+        DataControl control = new DataControl(appContext, DataControl.SaveType.DB);
         control.putEntity("a1", testEntity);
         TestEntity testEntity2 = control.getEntity("a1", null, new TestEntity());
-        Assert.assertNotNull(testEntity2);
+        Assert.assertEquals(testEntity2, testEntity);
     }
 }

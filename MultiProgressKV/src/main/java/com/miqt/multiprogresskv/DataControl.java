@@ -27,10 +27,11 @@ import java.util.Map;
  */
 public class DataControl {
 
-    private String mName;
-    private Context mContext;
-    private ContentResolver mResolver;
-    private Uri mUri;
+    private final SaveType saveTye;
+    private final String mName;
+    private final Context mContext;
+    private final ContentResolver mResolver;
+    private final Uri mUri;
 
     public DataControl(Context context) {
         this(context, "def", SaveType.SP);
@@ -59,6 +60,7 @@ public class DataControl {
         }
         this.mContext = context;
         this.mResolver = context.getContentResolver();
+        this.saveTye = type;
         this.mUri = Uri.parse("content://" + mContext.getPackageName() + ".DataContentProvider" + type.path);
     }
 
@@ -109,6 +111,10 @@ public class DataControl {
             args[1] = key;
             args[2] = String.valueOf(value);
             args[3] = type.getName();
+            //DB 方式单行存储超过 2M 会引发容量异常
+            if (saveTye == SaveType.DB && args[2].length() >= 2048 * 1024) {
+                return;
+            }
             mResolver.update(mUri, null, null, args);
         } catch (Throwable e) {
             e.printStackTrace();
