@@ -116,4 +116,36 @@ public class DataControlTest {
         TestEntity testEntity2 = control.getEntity("a1", null, new TestEntity());
         Assert.assertEquals(testEntity2, testEntity);
     }
+
+
+    @Test
+    public void test2MSize() {
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        DataControl control = new DataControl(appContext, DataControl.SaveType.DB);
+        byte[] bytes = new byte[2048 * 1024];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = 100;
+        }
+        control.putString("he", new String(bytes));
+
+        String result = control.getString("he", null);
+
+        Assert.assertNull(result);
+
+
+    }
+
+    @Test
+    public void test2MSizeSp() {
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        DataControl control = new DataControl(appContext, DataControl.SaveType.SP);
+        byte[] bytes = new byte[2048 * 1024];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = 100;
+        }
+        control.putString("he", new String(bytes));
+        String result = control.getString("he", null);
+        Assert.assertNotNull(result);
+    }
+
 }
