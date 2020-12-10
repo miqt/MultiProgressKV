@@ -1,27 +1,22 @@
-package com.miqt.datacontrol;
+package com.miqt.multiprogresskv;
 
 import android.content.Context;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-
-import com.miqt.multiprogresskv.DataControl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@RunWith(AndroidJUnit4.class)
-public class SpControlTest {
+public class DataControlTest {
     @Test
     public void test() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        DataControl control = new DataControl(appContext,"hellotab", DataControl.SaveType.DB);
+        DataControl control = new DataControl(appContext, "hellotab", DataControl.SaveType.DB);
 
         control.putString("k1", "hello");
         control.putInt("k2", 10);
@@ -90,5 +85,20 @@ public class SpControlTest {
         Assert.assertEquals(list, listRes);
         Assert.assertEquals(map, mapRes);
 
+    }
+
+    @Test
+    public void testEntity() {
+        class TestEntity {
+            static final int anInt = 1;
+            Float aFloat = 10.0F;
+            Double aDouble = 10.0d;
+        }
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        TestEntity testEntity = new TestEntity();
+        DataControl control = new DataControl(appContext);
+        control.putEntity("a1", testEntity);
+        TestEntity testEntity2 = control.getEntity("a1", null, new TestEntity());
+        Assert.assertNotNull(testEntity2);
     }
 }

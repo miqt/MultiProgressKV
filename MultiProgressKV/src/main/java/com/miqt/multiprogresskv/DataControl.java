@@ -9,6 +9,8 @@ import android.text.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -71,7 +73,7 @@ public class DataControl {
         projection[0] = mName;
         projection[1] = key;
         projection[2] = type.getName();
-        projection[3] = defValue!=null?String.valueOf(defValue):null;
+        projection[3] = defValue != null ? String.valueOf(defValue) : null;
         Cursor cursor = null;
         try {
             cursor = mResolver.query(mUri, projection, null, null, null, null);
@@ -115,6 +117,111 @@ public class DataControl {
 
     public boolean contains(String key) {
         return get(key, null, String.class) != null;
+    }
+
+    public <T> void putEntity(String key, T value) {
+        Field[] fields = value.getClass().getDeclaredFields();
+        Map<String, Object> map = new HashMap<>();
+        for (Field field : fields) {
+            if (field == null) {
+                continue;
+            }
+            if ((field.getModifiers() & Modifier.STATIC) == Modifier.STATIC) {
+                continue;
+            }
+            String name = field.getName();
+            Object object = null;
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+            try {
+                object = field.get(value);
+            } catch (IllegalAccessException e) {
+                continue;
+            }
+            if (object == null) {
+                continue;
+            }
+            if (isAllowType(object))
+                map.put(name, object);
+        }
+        putMap(key, map);
+    }
+
+    private boolean isAllowType(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (o instanceof JSONArray || o instanceof JSONObject) {
+            return true;
+        }
+        try {
+            if (o instanceof Collection) {
+                return true;
+            }
+            if (o instanceof Map) {
+                return true;
+            }
+            if (o instanceof Boolean ||
+                    o instanceof Byte ||
+                    o instanceof Character ||
+                    o instanceof Double ||
+                    o instanceof Float ||
+                    o instanceof Integer ||
+                    o instanceof Long ||
+                    o instanceof Short ||
+                    o instanceof String) {
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    public <T> T getEntity(String key, T defValue, T tmp) {
+        if (tmp == null) {
+            return defValue;
+        }
+        Map<String, Object> map = getMap(key);
+        if (map == null || map.isEmpty()) {
+            return defValue;
+        }
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            if (entry == null) {
+                continue;
+            }
+            String name = entry.getKey();
+            Object value = entry.getValue();
+            if (TextUtils.isEmpty(name))
+                continue;
+            if (value == null)
+                continue;
+            Field field = null;
+            try {
+                field = tmp.getClass().getDeclaredField(name);
+            } catch (NoSuchFieldException e) {
+                continue;
+            }
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+            try {
+                field.set(tmp, tryCase(value, field.getType()));
+            } catch (IllegalAccessException ignored) {
+
+            }
+        }
+        return tmp;
+    }
+
+    private Object tryCase(java.lang.Object value, Class<?> type) {
+        if (Float.class.isAssignableFrom(type)) {
+            return Float.valueOf(String.valueOf(value));
+        }
+        if (Double.class.isAssignableFrom(type)) {
+            return Double.valueOf(String.valueOf(value));
+        }
+        return value;
     }
 
     public void putCollection(String key, Collection<Object> value) {
