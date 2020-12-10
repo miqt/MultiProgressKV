@@ -29,6 +29,12 @@ public class SpControlTest {
         control.putBool("k4", true);
         control.putLong("k5", 100L);
 
+        Assert.assertTrue(control.contains("k1"));
+        Assert.assertTrue(control.contains("k2"));
+        Assert.assertTrue(control.contains("k3"));
+        Assert.assertTrue(control.contains("k4"));
+        Assert.assertTrue(control.contains("k5"));
+
         Assert.assertEquals(control.getString("k1", null), "hello");
         Assert.assertEquals((int) control.getInt("k2", -1), 10);
         Assert.assertEquals(10, control.getFloat("k3", -1), 0.0);
@@ -52,7 +58,11 @@ public class SpControlTest {
         control.remove("k3");
         control.remove("k4");
         control.remove("k5");
-
+        Assert.assertFalse(control.contains("k1"));
+        Assert.assertFalse(control.contains("k2"));
+        Assert.assertFalse(control.contains("k3"));
+        Assert.assertFalse(control.contains("k4"));
+        Assert.assertFalse(control.contains("k5"));
         Assert.assertEquals(control.getString("k1", "null"), "null");
         Assert.assertEquals((int) control.getInt("k2", -1), -1);
         Assert.assertEquals(-1, control.getFloat("k3", -1), -1);

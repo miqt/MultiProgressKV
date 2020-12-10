@@ -71,7 +71,7 @@ public class DataControl {
         projection[0] = mName;
         projection[1] = key;
         projection[2] = type.getName();
-        projection[3] = String.valueOf(defValue);
+        projection[3] = defValue!=null?String.valueOf(defValue):null;
         Cursor cursor = null;
         try {
             cursor = mResolver.query(mUri, projection, null, null, null, null);
@@ -79,7 +79,10 @@ public class DataControl {
                 if (cursor.getCount() >= 1) {
                     if (cursor.moveToPosition(0)) {
                         String values = cursor.getString(0);
-                        return ReflectUtils.reflect(type).method("valueOf", values).get();
+                        if (type == String.class) {
+                            return (T) values;
+                        }
+                        return (T) type.getMethod("valueOf", new Class[]{String.class}).invoke(null, values);
                     }
                 }
                 cursor.close();
@@ -93,7 +96,6 @@ public class DataControl {
         }
         return defValue;
     }
-
 
     private <T> void put(String key, T value, Class<T> type) {
         if (key == null) {
@@ -109,6 +111,10 @@ public class DataControl {
         } catch (Throwable e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean contains(String key) {
+        return get(key, null, String.class) != null;
     }
 
     public void putCollection(String key, Collection<Object> value) {

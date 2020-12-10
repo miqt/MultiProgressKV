@@ -1,0 +1,45 @@
+apply plugin: 'maven'
+apply plugin: 'com.github.panpf.bintray-publish'
+
+
+def maven_version = "1.0.0"
+def maven_groupId = 'com.miqt'
+
+//下面的version和group必须有，gradle打包的pom文件依赖这个版本号和group
+version = maven_version
+group = maven_groupId
+
+def maven_artifactId
+if (project.name == "MultiProgressKV") {
+    maven_artifactId = "MultiProgressKV"
+} else {
+    maven_artifactId = project.name
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+
+            repository(url: uri('../../repo'))
+
+            pom.project {
+                name maven_artifactId
+                groupId maven_groupId
+                artifactId maven_artifactId
+                version maven_version
+                packaging 'aar'
+            }
+        }
+    }
+}
+
+
+//添加
+publish {
+    userOrg = 'miqingtang'//bintray.com用户名
+    groupId = maven_groupId//jcenter上的路径
+    artifactId = maven_artifactId//项目名称
+    publishVersion = maven_version//版本号
+    desc = 'https://github.com/miqt/MultiProgressKV/readme.md'
+    website = 'https://github.com/miqt/MultiProgressKV'//网站，不重要
+}
