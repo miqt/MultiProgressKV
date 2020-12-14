@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.json.JSONArray;
@@ -29,7 +30,6 @@ public class DataControl {
 
     private final SaveType saveTye;
     private final String mName;
-    private final Context mContext;
     private final ContentResolver mResolver;
     private final Uri mUri;
 
@@ -48,9 +48,8 @@ public class DataControl {
     /**
      * 构建数据读写工具
      *
-     * @param context
-     * @param name    命名控件，隔离用，注意这个name对应不同的存储方式分别为数据库表名和sp文件名
-     * @param type    存储类型
+     * @param name 命名控件，隔离用，注意这个name对应不同的存储方式分别为数据库表名和sp文件名
+     * @param type 存储类型
      */
     public DataControl(Context context, String name, SaveType type) {
         if (TextUtils.isEmpty(name)) {
@@ -58,10 +57,9 @@ public class DataControl {
         } else {
             this.mName = name;
         }
-        this.mContext = context;
         this.mResolver = context.getContentResolver();
         this.saveTye = type;
-        this.mUri = Uri.parse("content://" + mContext.getPackageName() + ".DataContentProvider" + type.path);
+        this.mUri = Uri.parse("content://" + context.getPackageName() + ".DataContentProvider" + type.path);
     }
 
     private <T> T get(String key, T defValue, Class<T> type) {
@@ -76,9 +74,7 @@ public class DataControl {
         projection[1] = key;
         projection[2] = type.getName();
         projection[3] = defValue != null ? String.valueOf(defValue) : null;
-        Cursor cursor = null;
-        try {
-            cursor = mResolver.query(mUri, projection, null, null, null, null);
+        try (Cursor cursor = mResolver.query(mUri, projection, null, null, null, null)) {
             if (cursor != null) {
                 if (cursor.getCount() >= 1) {
                     if (cursor.moveToPosition(0)) {
@@ -93,10 +89,6 @@ public class DataControl {
             }
         } catch (Throwable e) {
             e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
         }
         return defValue;
     }
@@ -122,10 +114,16 @@ public class DataControl {
     }
 
     public boolean contains(String key) {
-        return get(key, null, String.class) != null;
+        Bundle extras = new Bundle();
+        extras.putString("name", mName);
+        extras.putString("key", key);
+        return mResolver.call(mUri, "contains", saveTye.path, extras) != null;
     }
 
     public <T> void putEntity(String key, T value) {
+        if (value == null) {
+            return;
+        }
         Field[] fields = value.getClass().getDeclaredFields();
         Map<String, Object> map = new HashMap<>();
         for (Field field : fields) {
@@ -136,7 +134,7 @@ public class DataControl {
                 continue;
             }
             String name = field.getName();
-            Object object = null;
+            Object object;
             if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
@@ -184,6 +182,17 @@ public class DataControl {
         return false;
     }
 
+    public <T> T getEntity(String key, T defValue, Class<T> valueType) {
+        T tmp = null;
+        try {
+            tmp = valueType.newInstance();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return getEntity(key, defValue, tmp);
+
+    }
+
     public <T> T getEntity(String key, T defValue, T tmp) {
         if (tmp == null) {
             return defValue;
@@ -202,7 +211,7 @@ public class DataControl {
                 continue;
             if (value == null)
                 continue;
-            Field field = null;
+            Field field;
             try {
                 field = tmp.getClass().getDeclaredField(name);
             } catch (NoSuchFieldException e) {
@@ -378,7 +387,7 @@ public class DataControl {
         RAM("/ram"),
         DB("/db");
 
-        private String path;
+        public String path;
 
         SaveType(String uri) {
             this.path = uri;

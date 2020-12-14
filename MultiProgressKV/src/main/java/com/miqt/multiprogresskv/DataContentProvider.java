@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Process;
 import android.text.TextUtils;
 
@@ -17,6 +18,7 @@ import androidx.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class DataContentProvider extends ContentProvider {
 
@@ -39,6 +41,62 @@ public class DataContentProvider extends ContentProvider {
         return true;
     }
 
+    @Nullable
+    @Override
+    public Bundle call(@NonNull String authority, @NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
+        if (Process.myUid() != Binder.getCallingUid()) {
+            return null;
+        }
+        if (extras == null) {
+            return null;
+        }
+        if ("contains".equals(method)) {
+            String name = extras.getString("name");
+            String key = extras.getString("key");
+            if (key == null) {
+                return null;
+            }
+            if (name == null) {
+                return null;
+            }
+            if (Objects.equals(arg, DataControl.SaveType.RAM.path)) {
+                return getContainsFromRaw(name, key);
+            } else if (Objects.equals(arg, DataControl.SaveType.SP.path)) {
+                return getContainsFromSp(name, key);
+            } else if (Objects.equals(arg, DataControl.SaveType.DB.path)) {
+                return getContainsFromDB(name, key);
+            }
+        }
+        return super.call(authority, method, arg, extras);
+    }
+
+    private Bundle getContainsFromDB(String name, String key) {
+        Cursor cursor = getFromDB(key, null, null, name);
+        if (cursor == null) {
+            return null;
+        }
+        cursor.close();
+        return new Bundle();
+    }
+
+    private Bundle getContainsFromSp(String name, String key) {
+        if (preferencesCache.get(name) == null) {
+            return null;
+        }
+        if (preferencesCache.get(name).contains(key)) {
+            return new Bundle();
+        }
+        return null;
+    }
+
+    private Bundle getContainsFromRaw(String name, String key) {
+        Cursor cursor = getFromRaw(name, key);
+        if (cursor == null) {
+            return null;
+        }
+        cursor.close();
+        return new Bundle();
+    }
 
     @Nullable
     @Override

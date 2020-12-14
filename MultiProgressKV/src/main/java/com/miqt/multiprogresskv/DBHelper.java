@@ -7,19 +7,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 
 public class DBHelper extends SQLiteOpenHelper {
-    private static final String db_name = "miqt_kv_db.db";
-    private static final int dv_version = 2;
+    private static final String DB_NAME = "miqt_kv_db.db";
+    private static final String TB_NAME = "miqt_kv";
+    private static final int DV_VERSION = 2;
     private static volatile DBHelper instance;
-    private HashSet<String> tabNames;
 
     private DBHelper(Context context) {
-        super(context, db_name, null, dv_version);
-        tabNames = new HashSet<>();
+        super(context, DB_NAME, null, DV_VERSION);
     }
 
     public static DBHelper getInstance(Context context) {
@@ -33,40 +31,26 @@ public class DBHelper extends SQLiteOpenHelper {
         return instance;
     }
 
-    public long put(String key, String value, String type, String name) {
-        SQLiteDatabase database = getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(Column.KEY, key);
-        values.put(Column.VALUE, value);
-        values.put(Column.TYPE, type);
-        checkTable(name);
-        long res = database.replace(name, null, values);
-        values.clear();
-        return res;
-    }
-
-    private void checkTable(String name) {
-        if (!tabNames.contains(name)) {
-            String create_tab = "create table if not exists "
-                    + name + " (" +
-                    Column.ID + Types.ID + "," +
-                    Column.KEY + Types.KEY + "," +
-                    Column.VALUE + Types.VALUE + "," +
-                    Column.TYPE + Types.TYPE + "," +
-                    Column.RESERVE_1 + Types.RESERVE_1 + "," +
-                    Column.RESERVE_2 + Types.RESERVE_2 + "," +
-                    Column.RESERVE_3 + Types.RESERVE_3 +
-                    " )";
-            getWritableDatabase().execSQL(create_tab);
-            tabNames.add(name);
-        }
-
+    private void createTable(String name, SQLiteDatabase db) {
+        String create_tab = "CREATE TABLE IF NOT EXISTS "
+                + name + " (" +
+                Column.ID + Types.ID + "," +
+                Column.NAME + Types.NAME + "," +
+                Column.KEY + Types.KEY + "," +
+                Column.VALUE + Types.VALUE + "," +
+                Column.TYPE + Types.TYPE + "," +
+                Column.TIME + Types.TIME +
+                " );";
+        db.execSQL(create_tab);
+        db.execSQL("CREATE UNIQUE INDEX [" + TB_NAME + "_rep]" +
+                "ON [" + TB_NAME + "](\n" +
+                "  [" + Column.NAME + "], \n" +
+                "  [" + Column.KEY + "]);");
     }
 
     public String get(String key, String def, String type, String name) {
-        checkTable(name);
-        SQLiteDatabase database = getWritableDatabase();
-        Cursor cursor = database.query(name, new String[]{Column.KEY, Column.VALUE, Column.TYPE}, Column.KEY + " = ?", new String[]{key}, null, null, null);
+        SQLiteDatabase database = getReadableDatabase();
+        Cursor cursor = database.query(TB_NAME, new String[]{Column.NAME, Column.KEY, Column.VALUE, Column.TYPE}, Column.NAME + " = ? AND " + Column.KEY + " = ? ", new String[]{name, key}, null, null, null);
         if (cursor == null || cursor.getCount() <= 0) {
             return def;
         }
@@ -76,14 +60,25 @@ public class DBHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    public long put(String key, String value, String type, String name) {
+        SQLiteDatabase database = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(Column.NAME, name);
+        values.put(Column.KEY, key);
+        values.put(Column.VALUE, value);
+        values.put(Column.TYPE, type);
+        long res = database.replace(TB_NAME, null, values);
+        values.clear();
+        return res;
+    }
+
     public long remove(String key, String name) {
-        checkTable(name);
-        return getWritableDatabase().delete(name, Column.KEY + " = ?", new String[]{key});
+        return getWritableDatabase().delete(TB_NAME, Column.NAME + " = ? AND " + Column.KEY + " = ? ", new String[]{name, key});
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
+        createTable(TB_NAME, db);
     }
 
     @Override
@@ -116,22 +111,35 @@ public class DBHelper extends SQLiteOpenHelper {
     // 列名
     static class Column {
         static final String ID = "id";
-        static final String KEY = "k";
-        static final String VALUE = "v";
-        static final String TYPE = "t";
-        static final String RESERVE_1 = "r1";
-        static final String RESERVE_2 = "r2";
-        static final String RESERVE_3 = "r3";
+        static final String NAME = "name";
+        static final String KEY = "key";
+        static final String VALUE = "value";
+        static final String TYPE = "type";
+        static final String TIME = "time";
     }
 
+    /*
+    CREATE TABLE [entity6](
+      [id] INTEGER PRIMARY KEY AUTOINCREMENT,
+      [name] TEXT NOT NULL,
+      [key] TEXT NOT NULL,
+      [value] TEXT NOT NULL,
+      [type] TEXT ,
+      [time] BIGINT NOT NULL DEFAULT ((strftime('%s','now') - strftime('%S','now') + strftime('%f','now'))*1000));
+
+    CREATE UNIQUE INDEX [rep2]
+    ON [entity6](
+      [name],
+      [key]);
+
+     */
     // 类型
     static class Types {
-        static final String ID = " Integer Primary Key Autoincrement ";
-        static final String KEY = " TEXT NOT NULL UNIQUE";
-        static final String VALUE = " TEXT ";
-        static final String TYPE = " VARCHAR(50) ";
-        static final String RESERVE_1 = " TEXT ";
-        static final String RESERVE_2 = " TEXT ";
-        static final String RESERVE_3 = " TEXT ";
+        static final String ID = " INTEGER PRIMARY KEY AUTOINCREMENT ";
+        static final String NAME = " TEXT NOT NULL ";
+        static final String KEY = " TEXT NOT NULL ";
+        static final String VALUE = " TEXT NOT NULL ";
+        static final String TYPE = " TEXT ";
+        static final String TIME = " BIGINT NOT NULL DEFAULT ((strftime('%s','now') - strftime('%S','now') + strftime('%f','now'))*1000) ";
     }
 }
