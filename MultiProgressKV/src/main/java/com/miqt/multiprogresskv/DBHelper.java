@@ -33,19 +33,20 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private void createTable(String name, SQLiteDatabase db) {
         String create_tab = "CREATE TABLE IF NOT EXISTS "
-                + name + " (" +
-                Column.ID + Types.ID + "," +
-                Column.NAME + Types.NAME + "," +
-                Column.KEY + Types.KEY + "," +
-                Column.VALUE + Types.VALUE + "," +
-                Column.TYPE + Types.TYPE + "," +
+                + name + " (\n\t" +
+                Column.ID + Types.ID + ",\n\t" +
+                Column.NAME + Types.NAME + ",\n\t" +
+                Column.KEY + Types.KEY + ",\n\t" +
+                Column.VALUE + Types.VALUE + ",\n\t" +
+                Column.TYPE + Types.TYPE + ",\n\t" +
                 Column.TIME + Types.TIME +
-                " );";
+                "\n);";
         db.execSQL(create_tab);
-        db.execSQL("CREATE UNIQUE INDEX [" + TB_NAME + "_rep]" +
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS [" + TB_NAME + "_rep]" +
                 "ON [" + TB_NAME + "](\n" +
-                "  [" + Column.NAME + "], \n" +
-                "  [" + Column.KEY + "]);");
+                "\t[" + Column.NAME + "],\n" +
+                "\t[" + Column.KEY + "]" +
+                "\n);");
     }
 
     public String get(String key, String def, String type, String name) {
