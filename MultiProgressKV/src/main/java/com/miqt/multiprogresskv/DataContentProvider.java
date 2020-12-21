@@ -25,8 +25,8 @@ public class DataContentProvider extends ContentProvider {
     private final static short TYPE_RAM = 1;
     private final static short TYPE_SP = 2;
     private final static short TYPE_DB = 3;
-    private static Map<String, Map<String, Object>> mapCache = new HashMap<>();
-    private static Map<String, SharedPreferences> preferencesCache = new HashMap<>();
+    private static final Map<String, Map<String, Object>> mapCache = new HashMap<>();
+    private static final Map<String, SharedPreferences> preferencesCache = new HashMap<>();
     private UriMatcher mUriMatcher;
     private Context mContext;
 
@@ -80,10 +80,11 @@ public class DataContentProvider extends ContentProvider {
     }
 
     private Bundle getContainsFromSp(String name, String key) {
-        if (preferencesCache.get(name) == null) {
+        SharedPreferences preferences = preferencesCache.get(name);
+        if (preferences == null) {
             return null;
         }
-        if (preferencesCache.get(name).contains(key)) {
+        if (preferences.contains(key)) {
             return new Bundle();
         }
         return null;
@@ -156,18 +157,19 @@ public class DataContentProvider extends ContentProvider {
     }
 
     private Cursor getFromSp(String name, String key, String type, String def) {
-        if (preferencesCache.get(name) != null) {
+        SharedPreferences preference = preferencesCache.get(name);
+        if (preference != null) {
             Object result = null;
             if (Integer.class.getName().equals(type)) {
-                result = preferencesCache.get(name).getInt(key, Integer.parseInt(def));
+                result = preference.getInt(key, Integer.parseInt(def));
             } else if (Boolean.class.getName().equals(type)) {
-                result = preferencesCache.get(name).getBoolean(key, Boolean.parseBoolean(def));
+                result = preference.getBoolean(key, Boolean.parseBoolean(def));
             } else if (Float.class.getName().equals(type)) {
-                result = preferencesCache.get(name).getFloat(key, Float.parseFloat(def));
+                result = preference.getFloat(key, Float.parseFloat(def));
             } else if (Long.class.getName().equals(type)) {
-                result = preferencesCache.get(name).getLong(key, Long.parseLong(def));
+                result = preference.getLong(key, Long.parseLong(def));
             } else if (String.class.getName().equals(type)) {
-                result = preferencesCache.get(name).getString(key, def);
+                result = preference.getString(key, def);
             }
             if (result != null) {
                 MatrixCursor cursor = new MatrixCursor(new String[]{"data"}, 1);

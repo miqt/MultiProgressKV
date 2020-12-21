@@ -28,8 +28,8 @@ import java.util.Map;
  */
 public class DataControl {
 
-    private final SaveType saveTye;
-    private final String mName;
+    private final SaveType mSaveTye;
+    private final String mSpace;
     private final ContentResolver mResolver;
     private final Uri mUri;
 
@@ -37,8 +37,8 @@ public class DataControl {
         this(context, "def", SaveType.SP);
     }
 
-    public DataControl(Context context, String name) {
-        this(context, name, SaveType.SP);
+    public DataControl(Context context, String space) {
+        this(context, space, SaveType.SP);
     }
 
     public DataControl(Context context, SaveType type) {
@@ -48,17 +48,17 @@ public class DataControl {
     /**
      * 构建数据读写工具
      *
-     * @param name 命名控件，隔离用，注意这个name对应不同的存储方式分别为数据库表名和sp文件名
+     * @param space 命名空间，隔离用，注意这个name对应不同的存储方式分别为数据库表名和sp文件名
      * @param type 存储类型
      */
-    public DataControl(Context context, String name, SaveType type) {
-        if (TextUtils.isEmpty(name)) {
-            this.mName = "null";
+    public DataControl(Context context, String space, SaveType type) {
+        if (TextUtils.isEmpty(space)) {
+            this.mSpace = "null";
         } else {
-            this.mName = name;
+            this.mSpace = space;
         }
         this.mResolver = context.getContentResolver();
-        this.saveTye = type;
+        this.mSaveTye = type;
         this.mUri = Uri.parse("content://" + context.getPackageName() + ".DataContentProvider" + type.path);
     }
 
@@ -70,22 +70,23 @@ public class DataControl {
             return defValue;
         }
         String[] projection = new String[4];
-        projection[0] = mName;
+        projection[0] = mSpace;
         projection[1] = key;
         projection[2] = type.getName();
         projection[3] = defValue != null ? String.valueOf(defValue) : null;
         try (Cursor cursor = mResolver.query(mUri, projection, null, null, null, null)) {
-            if (cursor != null) {
-                if (cursor.getCount() >= 1) {
-                    if (cursor.moveToPosition(0)) {
-                        String values = cursor.getString(0);
-                        if (type == String.class) {
-                            return (T) values;
-                        }
-                        return (T) type.getMethod("valueOf", new Class[]{String.class}).invoke(null, values);
-                    }
+            if (cursor == null) {
+                return defValue;
+            }
+            if (cursor.getCount() <= 0) {
+                return defValue;
+            }
+            if (cursor.moveToPosition(0)) {
+                String values = cursor.getString(0);
+                if (type == String.class) {
+                    return (T) values;
                 }
-                cursor.close();
+                return (T) type.getMethod("valueOf", new Class[]{String.class}).invoke(null, values);
             }
         } catch (Throwable e) {
             e.printStackTrace();
@@ -99,12 +100,12 @@ public class DataControl {
         }
         try {
             String[] args = new String[4];
-            args[0] = mName;
+            args[0] = mSpace;
             args[1] = key;
             args[2] = String.valueOf(value);
             args[3] = type.getName();
             //DB 方式单行存储超过 2M 会引发容量异常
-            if (saveTye == SaveType.DB && args[2].length() >= 2048 * 1024) {
+            if (mSaveTye == SaveType.DB && args[2].length() >= 2048 * 1024) {
                 return;
             }
             mResolver.update(mUri, null, null, args);
@@ -115,9 +116,9 @@ public class DataControl {
 
     public boolean contains(String key) {
         Bundle extras = new Bundle();
-        extras.putString("name", mName);
+        extras.putString("name", mSpace);
         extras.putString("key", key);
-        return mResolver.call(mUri, "contains", saveTye.path, extras) != null;
+        return mResolver.call(mUri, "contains", mSaveTye.path, extras) != null;
     }
 
     public <T> void putEntity(String key, T value) {
@@ -245,7 +246,7 @@ public class DataControl {
         }
         try {
             String[] args = new String[4];
-            args[0] = mName;
+            args[0] = mSpace;
             args[1] = key;
             args[2] = new JSONArray(value).toString();
             args[3] = String.class.getName();
@@ -320,7 +321,7 @@ public class DataControl {
         }
         try {
             String[] args = new String[4];
-            args[0] = mName;
+            args[0] = mSpace;
             args[1] = key;
             args[2] = new JSONObject(value).toString();
             args[3] = String.class.getName();
@@ -370,11 +371,10 @@ public class DataControl {
         return get(key, def, String.class);
     }
 
-
     public void remove(String key) {
         try {
             String[] args = new String[2];
-            args[0] = mName;
+            args[0] = mSpace;
             args[1] = key;
             mResolver.delete(mUri, null, args);
         } catch (Throwable e) {

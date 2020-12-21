@@ -32,10 +32,10 @@ public class DataControlTest {
         Assert.assertTrue(control.contains("k5"));
 
         Assert.assertEquals(control.getString("k1", null), "hello");
-        Assert.assertEquals((int) control.getInt("k2", -1), 10);
+        Assert.assertEquals(control.getInt("k2", -1), 10);
         Assert.assertEquals(10, control.getFloat("k3", -1), 0.0);
-        Assert.assertEquals((boolean) control.getBool("k4", true), true);
-        Assert.assertEquals((long) control.getLong("k5", -1), 100L);
+        Assert.assertEquals(control.getBool("k4", true), true);
+        Assert.assertEquals(control.getLong("k5", -1), 100L);
 
         control.putString("k1", "hello1");
         control.putInt("k2", 100000);
@@ -44,10 +44,10 @@ public class DataControlTest {
         control.putLong("k5", -100);
 
         Assert.assertEquals(control.getString("k1", null), "hello1");
-        Assert.assertEquals((int) control.getInt("k2", -1), 100000);
+        Assert.assertEquals(control.getInt("k2", -1), 100000);
         Assert.assertEquals(10.1f, control.getFloat("k3", -1), 0.0);
-        Assert.assertEquals((boolean) control.getBool("k4", true), false);
-        Assert.assertEquals((long) control.getLong("k5", -1), -100);
+        Assert.assertEquals(control.getBool("k4", true), false);
+        Assert.assertEquals(control.getLong("k5", -1), -100);
 
         control.remove("k1");
         control.remove("k2");
@@ -60,10 +60,10 @@ public class DataControlTest {
         Assert.assertFalse(control.contains("k4"));
         Assert.assertFalse(control.contains("k5"));
         Assert.assertEquals(control.getString("k1", "null"), "null");
-        Assert.assertEquals((int) control.getInt("k2", -1), -1);
+        Assert.assertEquals(control.getInt("k2", -1), -1);
         Assert.assertEquals(-1, control.getFloat("k3", -1), -1);
-        Assert.assertEquals((boolean) control.getBool("k4", true), true);
-        Assert.assertEquals((long) control.getLong("k5", -1), -1);
+        Assert.assertEquals(control.getBool("k4", true), true);
+        Assert.assertEquals(control.getLong("k5", -1), -1);
 
         Collection<Object> list = new ArrayList<>();
         list.add("aabb");
@@ -92,8 +92,8 @@ public class DataControlTest {
     public void testEntity() {
         class TestEntity {
             static final int anInt = 1;
-            Float aFloat = 10.0F;
-            Double aDouble = 10.0d;
+            final Float aFloat = 10.0F;
+            final Double aDouble = 10.0d;
 
             @Override
             public boolean equals(Object o) {

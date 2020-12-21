@@ -61,7 +61,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    public long put(String key, String value, String type, String name) {
+    public void put(String key, String value, String type, String name) {
         SQLiteDatabase database = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(Column.NAME, name);
@@ -70,7 +70,6 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(Column.TYPE, type);
         long res = database.replace(TB_NAME, null, values);
         values.clear();
-        return res;
     }
 
     public long remove(String key, String name) {
