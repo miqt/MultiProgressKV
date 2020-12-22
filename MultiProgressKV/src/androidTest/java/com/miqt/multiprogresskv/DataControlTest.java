@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class DataControlTest {
     @Test
@@ -148,4 +149,36 @@ public class DataControlTest {
         Assert.assertNotNull(result);
     }
 
+    @Test
+    public void keyset() {
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        DataControl control1 = new DataControl(appContext, "keyset", DataControl.SaveType.SP);
+        DataControl control2 = new DataControl(appContext, "keyset", DataControl.SaveType.RAM);
+        DataControl control3 = new DataControl(appContext, "keyset", DataControl.SaveType.DB);
+
+        control1.putString("1", "1");
+        control1.putString("2", "2");
+        control1.putString("3", "3");
+        control2.putString("1", "1");
+        control2.putString("2", "2");
+        control2.putString("3", "3");
+        control3.putString("1", "1");
+        control3.putString("2", "2");
+        control3.putString("3", "3");
+
+        Set<String> set1 = control1.keySet();
+        Set<String> set2 = control2.keySet();
+        Set<String> set3 = control3.keySet();
+
+        Assert.assertTrue(set1 != null && set1.size() > 0);
+
+        Assert.assertEquals(set1, set2);
+        Assert.assertEquals(set1, set3);
+
+
+    }
+    @Test
+    public void getAll() {
+        
+    }
 }

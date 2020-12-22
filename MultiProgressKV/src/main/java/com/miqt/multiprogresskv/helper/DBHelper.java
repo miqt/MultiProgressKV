@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,18 +97,45 @@ public class DBHelper extends SQLiteOpenHelper implements IDataHelper {
 
     @Override
     public boolean contains(String space, String key) {
-        Object o = get(space,key,null,null);
+        Object o = get(space, key, null, null);
         return o != null;
     }
 
     @Override
     public Set<String> keySet(String space) {
-        return null;
+        SQLiteDatabase database = getReadableDatabase();
+        Cursor cursor = database.query(TB_NAME, new String[]{Column.KEY},
+                Column.NAME + " = ? ",
+                new String[]{space}, null, null, null);
+        if (cursor == null || cursor.getCount() <= 0) {
+            return null;
+        }
+        Set<String> strings = new HashSet<>();
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            String key = cursor.getString(cursor.getColumnIndex(Column.KEY));
+            strings.add(key);
+        }
+        cursor.close();
+        return strings;
     }
 
     @Override
     public Map<String, Object> getAll(String space) {
-        return null;
+        SQLiteDatabase database = getReadableDatabase();
+        Cursor cursor = database.query(TB_NAME, new String[]{Column.KEY, Column.VALUE},
+                Column.NAME + " = ? ",
+                new String[]{space}, null, null, null);
+        if (cursor == null || cursor.getCount() <= 0) {
+            return null;
+        }
+        HashMap<String, Object> map = new HashMap<>(cursor.getCount());
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            String key = cursor.getString(cursor.getColumnIndex(Column.KEY));
+            String value = cursor.getString(cursor.getColumnIndex(Column.VALUE));
+            map.put(key, value);
+        }
+        cursor.close();
+        return map;
     }
 
     @Override

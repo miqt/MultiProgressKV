@@ -109,7 +109,6 @@ public class SpHelper implements IDataHelper {
         }
         return preference.getAll().keySet();
     }
-
     @Override
     public Map<String, Object> getAll(String space) {
         SharedPreferences preference = preferencesCache.get(space);

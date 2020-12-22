@@ -79,7 +79,6 @@ public class RamHelper implements IDataHelper {
         }
         return null;
     }
-
     @Override
     public Map<String, Object> getAll(String space) {
         return mapCache.get(space);

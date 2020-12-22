@@ -13,10 +13,13 @@ import org.json.JSONObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @Copyright © 2020 MiQt Inc. All rights reserved.
@@ -384,8 +387,16 @@ public class DataControl {
 
     public void removeAll() {
         Bundle extras = new Bundle();
-        extras.putString("name", mSpace);
+        extras.putString("space", mSpace);
         mResolver.call(mUri, "removeAll", mSaveTye.path, extras);
+    }
+
+    public Set<String> keySet() {
+        Bundle extras = new Bundle();
+        extras.putString("space", mSpace);
+        Bundle bundle = mResolver.call(mUri, "keySet", mSaveTye.path, extras);
+        String[] keys = bundle.getStringArray("result");
+        return new HashSet<>(Arrays.asList(keys));
     }
 
     public enum SaveType {
