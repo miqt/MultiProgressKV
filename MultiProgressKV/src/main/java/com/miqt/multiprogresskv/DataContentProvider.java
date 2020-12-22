@@ -12,6 +12,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Process;
 import android.text.TextUtils;
+import android.util.LruCache;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,7 +27,7 @@ public class DataContentProvider extends ContentProvider {
     private final static short TYPE_SP = 2;
     private final static short TYPE_DB = 3;
     private static final Map<String, Map<String, Object>> mapCache = new HashMap<>();
-    private static final Map<String, SharedPreferences> preferencesCache = new HashMap<>();
+    private static final LruCache<String, SharedPreferences> preferencesCache = new LruCache<>(10);
     private UriMatcher mUriMatcher;
     private Context mContext;
 
@@ -82,7 +83,8 @@ public class DataContentProvider extends ContentProvider {
     private Bundle getContainsFromSp(String name, String key) {
         SharedPreferences preferences = preferencesCache.get(name);
         if (preferences == null) {
-            return null;
+            preferences = mContext.getSharedPreferences(name, Context.MODE_PRIVATE);
+            preferencesCache.put(name, preferences);
         }
         if (preferences.contains(key)) {
             return new Bundle();
@@ -158,24 +160,26 @@ public class DataContentProvider extends ContentProvider {
 
     private Cursor getFromSp(String name, String key, String type, String def) {
         SharedPreferences preference = preferencesCache.get(name);
-        if (preference != null) {
-            Object result = null;
-            if (Integer.class.getName().equals(type)) {
-                result = preference.getInt(key, Integer.parseInt(def));
-            } else if (Boolean.class.getName().equals(type)) {
-                result = preference.getBoolean(key, Boolean.parseBoolean(def));
-            } else if (Float.class.getName().equals(type)) {
-                result = preference.getFloat(key, Float.parseFloat(def));
-            } else if (Long.class.getName().equals(type)) {
-                result = preference.getLong(key, Long.parseLong(def));
-            } else if (String.class.getName().equals(type)) {
-                result = preference.getString(key, def);
-            }
-            if (result != null) {
-                MatrixCursor cursor = new MatrixCursor(new String[]{"data"}, 1);
-                cursor.addRow(new Object[]{String.valueOf(result)});
-                return cursor;
-            }
+        if (preference == null) {
+            preference = mContext.getSharedPreferences(name, Context.MODE_PRIVATE);
+            preferencesCache.put(name, preference);
+        }
+        Object result = null;
+        if (Integer.class.getName().equals(type)) {
+            result = preference.getInt(key, Integer.parseInt(def));
+        } else if (Boolean.class.getName().equals(type)) {
+            result = preference.getBoolean(key, Boolean.parseBoolean(def));
+        } else if (Float.class.getName().equals(type)) {
+            result = preference.getFloat(key, Float.parseFloat(def));
+        } else if (Long.class.getName().equals(type)) {
+            result = preference.getLong(key, Long.parseLong(def));
+        } else if (String.class.getName().equals(type)) {
+            result = preference.getString(key, def);
+        }
+        if (result != null) {
+            MatrixCursor cursor = new MatrixCursor(new String[]{"data"}, 1);
+            cursor.addRow(new Object[]{String.valueOf(result)});
+            return cursor;
         }
         return null;
     }
@@ -211,9 +215,11 @@ public class DataContentProvider extends ContentProvider {
                 }
             } else if (code == TYPE_SP) {
                 SharedPreferences preferences = preferencesCache.get(name);
-                if (preferences != null) {
-                    preferences.edit().remove(key).apply();
+                if (preferences == null) {
+                    preferences = mContext.getSharedPreferences(name, Context.MODE_PRIVATE);
+                    preferencesCache.put(name, preferences);
                 }
+                preferences.edit().remove(key).apply();
             } else if (code == TYPE_DB) {
                 return (int) DBHelper.getInstance(mContext).remove(key, name);
             }
