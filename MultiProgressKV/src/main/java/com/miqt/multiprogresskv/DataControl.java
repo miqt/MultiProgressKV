@@ -28,10 +28,10 @@ import java.util.Map;
  */
 public class DataControl {
 
-    private final SaveType mSaveTye;
-    private final String mSpace;
-    private final ContentResolver mResolver;
-    private final Uri mUri;
+    final SaveType mSaveTye;
+    final String mSpace;
+    final ContentResolver mResolver;
+    final Uri mUri;
 
     public DataControl(Context context) {
         this(context, "def", SaveType.SP);
@@ -49,7 +49,7 @@ public class DataControl {
      * 构建数据读写工具
      *
      * @param space 命名空间，隔离用，注意这个name对应不同的存储方式分别为数据库表名和sp文件名
-     * @param type 存储类型
+     * @param type  存储类型
      */
     public DataControl(Context context, String space, SaveType type) {
         if (TextUtils.isEmpty(space)) {
@@ -116,7 +116,7 @@ public class DataControl {
 
     public boolean contains(String key) {
         Bundle extras = new Bundle();
-        extras.putString("name", mSpace);
+        extras.putString("space", mSpace);
         extras.putString("key", key);
         return mResolver.call(mUri, "contains", mSaveTye.path, extras) != null;
     }
@@ -380,6 +380,12 @@ public class DataControl {
         } catch (Throwable e) {
             e.printStackTrace();
         }
+    }
+
+    public void removeAll() {
+        Bundle extras = new Bundle();
+        extras.putString("name", mSpace);
+        mResolver.call(mUri, "removeAll", mSaveTye.path, extras);
     }
 
     public enum SaveType {

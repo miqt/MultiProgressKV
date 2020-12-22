@@ -17,7 +17,7 @@ public class DataControlTest {
     @Test
     public void test() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        DataControl control = new DataControl(appContext, "hellotab", DataControl.SaveType.DB);
+        DataControl control = new DataControl(appContext, "hellotab", DataControl.SaveType.SP);
 
         control.putString("k1", "hello");
         control.putInt("k2", 10);

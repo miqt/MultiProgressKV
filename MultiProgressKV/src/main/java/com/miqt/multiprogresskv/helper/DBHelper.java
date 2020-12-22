@@ -1,4 +1,4 @@
-package com.miqt.multiprogresskv;
+package com.miqt.multiprogresskv.helper;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,9 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
-public class DBHelper extends SQLiteOpenHelper {
+public class DBHelper extends SQLiteOpenHelper implements IDataHelper {
     private static final String DB_NAME = "miqt_kv_db.db";
     private static final String TB_NAME = "miqt_kv";
     private static final int DV_VERSION = 2;
@@ -49,9 +51,24 @@ public class DBHelper extends SQLiteOpenHelper {
                 "\n);");
     }
 
-    public String get(String key, String def, String type, String name) {
+    @Override
+    public void put(String space, String key, String value, String type) {
+        SQLiteDatabase database = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(Column.NAME, space);
+        values.put(Column.KEY, key);
+        values.put(Column.VALUE, value);
+        values.put(Column.TYPE, type);
+        long res = database.replace(TB_NAME, null, values);
+        values.clear();
+    }
+
+    @Override
+    public Object get(String space, String key, String def, String type) {
         SQLiteDatabase database = getReadableDatabase();
-        Cursor cursor = database.query(TB_NAME, new String[]{Column.NAME, Column.KEY, Column.VALUE, Column.TYPE}, Column.NAME + " = ? AND " + Column.KEY + " = ? ", new String[]{name, key}, null, null, null);
+        Cursor cursor = database.query(TB_NAME, new String[]{Column.NAME, Column.KEY, Column.VALUE, Column.TYPE},
+                Column.NAME + " = ? AND " + Column.KEY + " = ? ",
+                new String[]{space, key}, null, null, null);
         if (cursor == null || cursor.getCount() <= 0) {
             return def;
         }
@@ -61,19 +78,35 @@ public class DBHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    public void put(String key, String value, String type, String name) {
-        SQLiteDatabase database = getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(Column.NAME, name);
-        values.put(Column.KEY, key);
-        values.put(Column.VALUE, value);
-        values.put(Column.TYPE, type);
-        long res = database.replace(TB_NAME, null, values);
-        values.clear();
+
+    @Override
+    public void remove(String space, String key) {
+        getWritableDatabase().delete(TB_NAME,
+                Column.NAME + " = ? AND " + Column.KEY + " = ? ",
+                new String[]{space, key});
     }
 
-    public long remove(String key, String name) {
-        return getWritableDatabase().delete(TB_NAME, Column.NAME + " = ? AND " + Column.KEY + " = ? ", new String[]{name, key});
+    @Override
+    public void removeAll(String space) {
+        getWritableDatabase().delete(TB_NAME,
+                Column.NAME + " = ? ",
+                new String[]{space});
+    }
+
+    @Override
+    public boolean contains(String space, String key) {
+        Object o = get(space,key,null,null);
+        return o != null;
+    }
+
+    @Override
+    public Set<String> keySet(String space) {
+        return null;
+    }
+
+    @Override
+    public Map<String, Object> getAll(String space) {
+        return null;
     }
 
     @Override
