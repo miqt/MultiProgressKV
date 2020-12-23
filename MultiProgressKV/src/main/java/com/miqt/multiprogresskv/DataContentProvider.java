@@ -20,6 +20,7 @@ import com.miqt.multiprogresskv.helper.RamHelper;
 import com.miqt.multiprogresskv.helper.SpHelper;
 
 import java.util.Objects;
+import java.util.Set;
 
 public class DataContentProvider extends ContentProvider {
 
@@ -50,57 +51,63 @@ public class DataContentProvider extends ContentProvider {
         if (extras == null) {
             return null;
         }
-        if ("contains".equals(method)) {
-            String space = extras.getString("space");
-            String key = extras.getString("key");
-            if (key == null) {
-                return null;
+        switch (method) {
+            case "contains": {
+                String space = extras.getString("space");
+                String key = extras.getString("key");
+                if (key == null) {
+                    return null;
+                }
+                if (space == null) {
+                    return null;
+                }
+                boolean contains = false;
+                if (Objects.equals(arg, DataControl.SaveType.RAM.path)) {
+                    contains = RamHelper.getInstance().contains(space, key);
+                } else if (Objects.equals(arg, DataControl.SaveType.SP.path)) {
+                    contains = SpHelper.getInstance(mContext).contains(space, key);
+                } else if (Objects.equals(arg, DataControl.SaveType.DB.path)) {
+                    contains = DBHelper.getInstance(mContext).contains(space, key);
+                }
+                if (contains) {
+                    return extras;
+                } else {
+                    return null;
+                }
             }
-            if (space == null) {
-                return null;
+            case "removeAll": {
+                String space = extras.getString("space");
+                if (space == null) {
+                    return null;
+                }
+                if (Objects.equals(arg, DataControl.SaveType.RAM.path)) {
+                    RamHelper.getInstance().removeAll(space);
+                } else if (Objects.equals(arg, DataControl.SaveType.SP.path)) {
+                    SpHelper.getInstance(mContext).removeAll(space);
+                } else if (Objects.equals(arg, DataControl.SaveType.DB.path)) {
+                    DBHelper.getInstance(mContext).removeAll(space);
+                }
+                break;
             }
-            boolean contains = false;
-            if (Objects.equals(arg, DataControl.SaveType.RAM.path)) {
-                contains = RamHelper.getInstance().contains(space, key);
-            } else if (Objects.equals(arg, DataControl.SaveType.SP.path)) {
-                contains = SpHelper.getInstance(mContext).contains(space, key);
-            } else if (Objects.equals(arg, DataControl.SaveType.DB.path)) {
-                contains = DBHelper.getInstance(mContext).contains(space, key);
-            }
-            if (contains) {
-                return extras;
-            } else {
-                return null;
-            }
-        } else if ("removeAll".equals(method)) {
-            String space = extras.getString("space");
-            if (space == null) {
-                return null;
-            }
-            if (Objects.equals(arg, DataControl.SaveType.RAM.path)) {
-                RamHelper.getInstance().removeAll(space);
-            } else if (Objects.equals(arg, DataControl.SaveType.SP.path)) {
-                SpHelper.getInstance(mContext).removeAll(space);
-            } else if (Objects.equals(arg, DataControl.SaveType.DB.path)) {
-                DBHelper.getInstance(mContext).removeAll(space);
-            }
-        } else if ("keySet".equals(method)) {
-            String space = extras.getString("space");
-            if (space == null) {
-                return null;
-            }
-            String[] keys = null;
-            if (Objects.equals(arg, DataControl.SaveType.RAM.path)) {
-                keys = RamHelper.getInstance().keySet(space).toArray(new String[0]);
-            } else if (Objects.equals(arg, DataControl.SaveType.SP.path)) {
-                keys = SpHelper.getInstance(mContext).keySet(space).toArray(new String[0]);
-            } else if (Objects.equals(arg, DataControl.SaveType.DB.path)) {
-                keys = DBHelper.getInstance(mContext).keySet(space).toArray(new String[0]);
-            }
-            if (keys!=null&&keys.length>0){
-                Bundle bundle = new Bundle();
-                bundle.putStringArray("result",keys);
-                return bundle;
+            case "keySet": {
+                String space = extras.getString("space");
+                if (space == null) {
+                    return null;
+                }
+                Set<String> keys = null;
+                if (Objects.equals(arg, DataControl.SaveType.RAM.path)) {
+                    keys = RamHelper.getInstance().keySet(space);
+                } else if (Objects.equals(arg, DataControl.SaveType.SP.path)) {
+                    keys = SpHelper.getInstance(mContext).keySet(space);
+                } else if (Objects.equals(arg, DataControl.SaveType.DB.path)) {
+                    keys = DBHelper.getInstance(mContext).keySet(space);
+                }
+                if (keys != null && keys.size() > 0) {
+                    Bundle bundle = new Bundle();
+                    bundle.putStringArray("result", keys.toArray(new String[0]));
+                    return bundle;
+                }
+                break;
             }
         }
         return null;

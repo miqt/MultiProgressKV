@@ -51,7 +51,7 @@ public class DataControl {
     /**
      * 构建数据读写工具
      *
-     * @param space 命名空间，隔离用，注意这个name对应不同的存储方式分别为数据库表名和sp文件名
+     * @param space 命名空间，用于键值对隔离
      * @param type  存储类型
      */
     public DataControl(Context context, String space, SaveType type) {
@@ -117,13 +117,22 @@ public class DataControl {
         }
     }
 
+    /**
+     * 判断是否包含指定键值对
+     * @param key Key
+     * @return true 包含
+     */
     public boolean contains(String key) {
         Bundle extras = new Bundle();
         extras.putString("space", mSpace);
         extras.putString("key", key);
         return mResolver.call(mUri, "contains", mSaveTye.path, extras) != null;
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     * @param value 默认值
+     */
     public <T> void putEntity(String key, T value) {
         if (value == null) {
             return;
@@ -185,7 +194,12 @@ public class DataControl {
         }
         return false;
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @param defValue 默认值
+     * @return Value
+     */
     public <T> T getEntity(String key, T defValue, Class<T> valueType) {
         T tmp = null;
         try {
@@ -196,7 +210,12 @@ public class DataControl {
         return getEntity(key, defValue, tmp);
 
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @param defValue 默认值
+     * @return Value
+     */
     public <T> T getEntity(String key, T defValue, T tmp) {
         if (tmp == null) {
             return defValue;
@@ -242,7 +261,11 @@ public class DataControl {
         }
         return value;
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     * @param value 默认值
+     */
     public void putCollection(String key, Collection<Object> value) {
         if (key == null) {
             return;
@@ -258,7 +281,11 @@ public class DataControl {
             e.printStackTrace();
         }
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @return Value
+     */
     public Map<String, Object> getMap(String key) {
         String json = get(key, "", String.class);
         try {
@@ -304,7 +331,11 @@ public class DataControl {
         }
         return map;
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @return Value
+     */
     public Collection<Object> getCollection(String key) {
         String json = get(key, "", String.class);
         try {
@@ -317,7 +348,11 @@ public class DataControl {
         }
         return null;
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     * @param value 默认值
+     */
     public void putMap(String key, Map<String, Object> value) {
         if (key == null) {
             return;
@@ -333,47 +368,92 @@ public class DataControl {
             e.printStackTrace();
         }
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     */
     public void putInt(String key, int value) {
         put(key, value, Integer.class);
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     */
     public void putBool(String key, boolean value) {
         put(key, value, Boolean.class);
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     */
     public void putLong(String key, long value) {
         put(key, value, Long.class);
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     */
     public void putFloat(String key, float value) {
         put(key, value, Float.class);
     }
-
+    /**
+     * 设置对应类型的数据
+     * @param key Key
+     */
     public void putString(String key, String value) {
         put(key, value, String.class);
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @param def 默认值
+     * @return Value
+     */
     public int getInt(String key, int def) {
         return get(key, def, Integer.class);
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @param def 默认值
+     * @return Value
+     */
     public boolean getBool(String key, boolean def) {
         return get(key, def, Boolean.class);
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @param def 默认值
+     * @return Value
+     */
     public long getLong(String key, long def) {
         return get(key, def, Long.class);
     }
-
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @param def 默认值
+     * @return Value
+     */
     public float getFloat(String key, float def) {
         return get(key, def, Float.class);
     }
 
+    /**
+     * 获取对应类型的数据
+     * @param key Key
+     * @param def 默认值
+     * @return Value
+     */
     public String getString(String key, String def) {
         return get(key, def, String.class);
     }
 
+    /**
+     * 删除指定的键值对
+     * @param key 要删除的键值对key
+     */
     public void remove(String key) {
         try {
             String[] args = new String[2];
@@ -385,23 +465,44 @@ public class DataControl {
         }
     }
 
+    /**
+     * 删除所有
+     */
     public void removeAll() {
         Bundle extras = new Bundle();
         extras.putString("space", mSpace);
         mResolver.call(mUri, "removeAll", mSaveTye.path, extras);
     }
 
+    /**
+     * 取得当前已经存储的所有key集合
+     */
     public Set<String> keySet() {
         Bundle extras = new Bundle();
         extras.putString("space", mSpace);
         Bundle bundle = mResolver.call(mUri, "keySet", mSaveTye.path, extras);
+        if (bundle == null) {
+            return null;
+        }
         String[] keys = bundle.getStringArray("result");
         return new HashSet<>(Arrays.asList(keys));
     }
 
+    /**
+     * 保存方式
+     */
     public enum SaveType {
+        /**
+         * SharedPreferences 方式存储 kv 对，适合数据量较小的场景
+         */
         SP("/sp"),
+        /**
+         * 内存 方式存储 kv 对，适合仅单次冷启动生效的场景
+         */
         RAM("/ram"),
+        /**
+         * 数据库方式存储 kv 对，适合存储数据比较多的场景
+         */
         DB("/db");
 
         public String path;

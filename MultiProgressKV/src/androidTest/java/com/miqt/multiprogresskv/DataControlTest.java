@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -124,9 +125,7 @@ public class DataControlTest {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         DataControl control = new DataControl(appContext, DataControl.SaveType.DB);
         byte[] bytes = new byte[2048 * 1024];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = 100;
-        }
+        Arrays.fill(bytes, (byte) 100);
         control.putString("he", new String(bytes));
 
         String result = control.getString("he", null);
@@ -141,9 +140,7 @@ public class DataControlTest {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         DataControl control = new DataControl(appContext, DataControl.SaveType.SP);
         byte[] bytes = new byte[2048 * 1024];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = 100;
-        }
+        Arrays.fill(bytes, (byte) 100);
         control.putString("he", new String(bytes));
         String result = control.getString("he", null);
         Assert.assertNotNull(result);
@@ -179,6 +176,46 @@ public class DataControlTest {
     }
     @Test
     public void getAll() {
-        
+        // 暫未支持
+    }
+
+    @Test
+    public void removeall() {
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        DataControl control1 = new DataControl(appContext, "removeall", DataControl.SaveType.SP);
+        DataControl control2 = new DataControl(appContext, "removeall", DataControl.SaveType.RAM);
+        DataControl control3 = new DataControl(appContext, "removeall", DataControl.SaveType.DB);
+
+        control1.putString("1", "1");
+        control1.putString("2", "2");
+        control1.putString("3", "3");
+        control2.putString("1", "1");
+        control2.putString("2", "2");
+        control2.putString("3", "3");
+        control3.putString("1", "1");
+        control3.putString("2", "2");
+        control3.putString("3", "3");
+
+        Set<String> set1 = control1.keySet();
+        Set<String> set2 = control2.keySet();
+        Set<String> set3 = control3.keySet();
+
+        Assert.assertTrue(set1 != null && set1.size() > 0);
+
+        Assert.assertEquals(set1, set2);
+        Assert.assertEquals(set1, set3);
+
+        control1.removeAll();
+        control2.removeAll();
+        control3.removeAll();
+
+        set1 = control1.keySet();
+        set2 = control2.keySet();
+        set3 = control3.keySet();
+
+        Assert.assertNull(set1);
+        Assert.assertNull(set2);
+        Assert.assertNull(set3);
+
     }
 }
