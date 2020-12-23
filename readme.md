@@ -6,7 +6,7 @@
 ## Use
 
 ```gradle
-implementation 'com.miqt:MultiProgressKV:1.0.0'
+implementation 'com.miqt:MultiProgressKV:1.0.1'
 ```
 
 ```java
