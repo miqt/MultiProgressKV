@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -173,11 +174,11 @@ public class DataControl {
             return true;
         }
         try {
-            if (o instanceof Collection) {
-                return true;
+            if (o instanceof List) {
+                return ((List) o).size()>0;
             }
             if (o instanceof Map) {
-                return true;
+                return ((Map) o).size()>0;
             }
             if (o instanceof Boolean ||
                     o instanceof Byte ||
@@ -253,12 +254,35 @@ public class DataControl {
     }
 
     private Object tryCase(java.lang.Object value, Class<?> type) {
-        if (Float.class.isAssignableFrom(type)) {
+        if (Float.class.isAssignableFrom(type)||float.class.isAssignableFrom(type)) {
             return Float.valueOf(String.valueOf(value));
         }
-        if (Double.class.isAssignableFrom(type)) {
+        if (Double.class.isAssignableFrom(type)||double.class.isAssignableFrom(type)) {
             return Double.valueOf(String.valueOf(value));
         }
+        if (char.class.isAssignableFrom(type)||Character.class.isAssignableFrom(type)) {
+            return ((String) value).toCharArray()[0];
+        }
+        if (short.class.isAssignableFrom(type)||Short.class.isAssignableFrom(type)) {
+            return Short.valueOf(String.valueOf(value));
+        }
+        if (long.class.isAssignableFrom(type)||Long.class.isAssignableFrom(type)) {
+            return Long.valueOf(String.valueOf(value));
+        }
+        if (byte.class.isAssignableFrom(type)||Byte.class.isAssignableFrom(type)) {
+            return Byte.valueOf(String.valueOf(value));
+        }
+        if (boolean.class.isAssignableFrom(type)||Boolean.class.isAssignableFrom(type)) {
+            return Boolean.valueOf(String.valueOf(value));
+        }
+        if (JSONObject.class.isAssignableFrom(type)) {
+            return new JSONObject((Map<String,Object>) value);
+        }
+        if (JSONArray.class.isAssignableFrom(type)) {
+            return new JSONArray((List<Object>) value);
+        }
+
+
         return value;
     }
     /**
