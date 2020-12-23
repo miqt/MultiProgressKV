@@ -31,8 +31,16 @@ allprojects {
         }
         jcenter { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
     }
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+        options.addStringOption('encoding', 'UTF-8')
+    }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
 }

@@ -5,6 +5,10 @@
 
 ## Use
 
+```gradle
+implementation 'com.miqt:MultiProgressKV:1.0.0'
+```
+
 ```java
 DataControl control  = new DataControl(this, DataControl.SaveType.DB);
 control.putString("key","value");
