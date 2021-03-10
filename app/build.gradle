@@ -3,7 +3,6 @@ apply plugin: 'com.miqt.plugin.hookmethod'
 hook_method {
     enable = true
     all = true
-    impl = "com.miqt.datacontrol.MethodHookPrint"
     justDebug = true
     jarRegexs = ["classes.jar"]
 }
@@ -39,5 +38,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation project(path: ':MultiProgressKV')
-    implementation 'com.miqt:hook-method-lib:0.2.8-bate'
+    implementation 'com.miqt:hook-method-lib:0.2.9-bate'
 }

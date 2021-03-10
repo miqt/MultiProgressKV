@@ -7,9 +7,6 @@ buildscript {
             url 'http://maven.aliyun.com/nexus/content/groups/public/'
         }
         maven {
-            url 'E:\\android_proj\\ASMCode\\plugin\\repo'
-        }
-        maven {
             url 'https://dl.bintray.com/miqingtang/maven'
         }
         jcenter { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
@@ -17,7 +14,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:4.0.1"
         classpath 'com.github.panpf.bintray-publish:bintray-publish:1.0.0'
-        classpath 'com.miqt:hook-method-plugin:0.2.8-bate'
+        classpath 'com.miqt:hook-method-plugin:0.2.9-bate'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -32,9 +29,6 @@ allprojects {
         }
         maven {
             url 'https://dl.bintray.com/miqingtang/maven'
-        }
-        maven {
-            url 'E:\\android_proj\\ASMCode\\plugin\\repo'
         }
         jcenter { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
     }
